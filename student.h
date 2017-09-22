@@ -12,4 +12,5 @@ typedef struct student {
 	float A1;
 	float E1;
 	float E2;
+	float Grade;
 }Student;

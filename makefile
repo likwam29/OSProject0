@@ -3,7 +3,7 @@ CC=gcc
 # specify options for the compiler
 CFLAGS=-c -Wall
 program: driver.o
-	$(CC) driver.o -o program
+	$(CC) driver.o -o program -lm
 driver: driver.c
 	$(CC) $(CFLAGS) driver.c
 clean:
