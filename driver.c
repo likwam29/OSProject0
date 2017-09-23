@@ -1,13 +1,19 @@
+// Matthew Likwarz
+// Project 0
+// CS 421
+
 #include <stdio.h>
 #include <limits.h>
 #include <math.h>
+#include<string.h>
 #include "student.h"
 
 //Prototyped methods
+// method comments are above actual methods instead of both prototyped and method.
 
 int getFileSize(FILE* f);
 
-void createFile(char *fileName, int size);
+void createFile(char *fileName, struct student students[], struct superMath math, int size);
 
 void buildStudentArray(FILE* f, struct student students[], int length);
 
@@ -54,27 +60,23 @@ int main ( int argc, char *argv[] )
 
 			// populate the array of structs
 			buildStudentArray(fp, students, numOfStudents);
-			calculateGrades(students, numOfStudents);
-			
-			float minArr[9];
-			float maxArr[9];
-			float avgArr[9];
-			float stdArr[9]; 
 
-			getMin(minArr, students, numOfStudents);
-			getMax(maxArr, students, numOfStudents);
-			getAvg(avgArr, students, numOfStudents);
-			getSD(stdArr, students, numOfStudents);
-			printf("%f min\n", minArr[0]);
-			printf("%f max\n", maxArr[0]);
-			printf("%f avg\n", avgArr[8]);
-			printf("%f std\n", stdArr[8]);
-			printf("%f student 0 grade\n", students[0].Grade);
-		    printf("%i bytes.\n", fileSize);
+			// clost the read file
+		    fclose(fp);
+			
+			// calculate the students grade based on read in data
+			calculateGrades(students, numOfStudents);
+
+			struct superMath mathStruct;
+
+			// do math and populate mathStruct
+			getMin(mathStruct.min, students, numOfStudents);
+			getMax(mathStruct.max, students, numOfStudents);
+			getAvg(mathStruct.avg, students, numOfStudents);
+			getSD(mathStruct.std, students, numOfStudents);
 
 			// create .csv file
-			createFile(argv[2], fileSize);
-		    fclose(fp);
+			createFile(argv[2], students, mathStruct, numOfStudents);
         }
     }
 	return 0;
@@ -88,21 +90,85 @@ int getFileSize(FILE* f)
     int fileSize = ftell(f);
     fseek(f, 0 , SEEK_SET);// needed for next read from beginning of file
     rewind(f);
-    printf("%i bytes.\n", fileSize);
     return fileSize;
 }
 
-// this will create a csv
-void createFile(char *fileName, int size)
+// this will create a csv in the specified format from handout
+void createFile(char *fileName, struct student students[], struct superMath math, int size)
 {
+	// create a file
 	FILE *fp;
-	fp=fopen(fileName,"w+");
-	fprintf(fp, "%i", size);
 	
+	// check to see if fileName passed in has .csv extension
+	char *isPresent;
+	isPresent = strchr(fileName, '.');
+	if(isPresent == NULL)
+	{
+		fileName = strcat(fileName,".csv");
+	}
+	
+	// open a write stream
+	fp=fopen(fileName,"w+");
+	
+	// Write into csv
+	
+	// print out column header to file
+	fprintf(fp, "Id,First Name,Last Name,Quiz1,Quiz2,Quiz3,Lab1,Lab2,Assignment1,Exam1,Exam2,Grade");
+	
+	//print out student scores and grade
+	int i;
+	for(i=0; i<size; i++)
+	{
+		// print Id and name
+		fprintf(fp, "\n%i,%s,%s,", students[i].Id, students[i].First, students[i].Last);
+		// print quiz scores
+		fprintf(fp, "%i,%i,%i,", (int)students[i].Q1, (int)students[i].Q2, (int)students[i].Q3);
+		// print labs
+		fprintf(fp, "%i,%i,", (int)students[i].L1, (int)students[i].L2);
+		// print assignment
+		fprintf(fp, "%i,", (int)students[i].A1);
+		// print exams
+		fprintf(fp, "%i,%i,", (int)students[i].E1, (int)students[i].E2);
+		// print Grade
+		fprintf(fp, "%.2f", students[i].Grade);
+	}
+
+	// print out min
+	fprintf(fp, "\n,,Min");
+	int j;
+	for(j=0; j<8; j++)
+	{
+		fprintf(fp, ",%i", (int)math.min[j]);
+	}
+	fprintf(fp, ",%.2f", math.min[8]);
+
+	// print out max
+	fprintf(fp, "\n,,Max");
+	for(j=0; j<8; j++)
+	{
+		fprintf(fp, ",%i", (int)math.max[j]);
+	}
+	fprintf(fp, ",%.2f", math.max[8]);
+
+	// print out avg
+	fprintf(fp, "\n,,Avg");
+	for(j=0; j<9; j++)
+	{
+		fprintf(fp, ",%.2f", math.avg[j]);
+	}
+
+	// print out std
+	fprintf(fp, "\n,,Std");
+	for(j=0; j<9; j++)
+	{
+		fprintf(fp, ",%.2f", math.std[j]);
+	}
+	
+	// close the file
 	fclose(fp);
 }
 
-// This mehtod will read a file and build an array of students out of it
+// This method will read a file and build an array of students out of it
 void buildStudentArray(FILE* f, struct student students[], int length)
 {
 	int i;
@@ -257,6 +323,7 @@ void getMax(float arr[], struct student students[], int length)
 	}
 }
 
+// This will get the avg for each assignment and push it into an array
 void getAvg(float arr[], struct student students[], int length)
 {
 	int i, j;

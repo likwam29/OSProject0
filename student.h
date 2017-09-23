@@ -1,5 +1,5 @@
 
-
+// this is a struct built to represent a student
 typedef struct student {
 	int Id;
 	char First[20];
@@ -14,3 +14,11 @@ typedef struct student {
 	float E2;
 	float Grade;
 }Student;
+
+// this struct acts as a container class for the csv. that way I dont have so many arguments
+typedef struct superMath {
+	float min[9];
+	float max[9];
+	float avg[9];
+	float std[9];
+}SuperMath;
